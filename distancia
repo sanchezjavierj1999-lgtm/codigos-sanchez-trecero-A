@@ -1,0 +1,53 @@
+
+#include "BluetoothSerial.h"
+
+#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+#error Bluetooth no esta habilitado. Revisa la configuracion del ESP32.
+#endif
+
+BluetoothSerial ESP_BT;
+
+// Pin del rele
+const int RELE = 5;
+
+void setup() {
+  Serial.begin(115200);
+
+  // Configurar rele como salida
+  pinMode(RELE, OUTPUT);
+
+  // Iniciar con el rele apagado
+  digitalWrite(RELE, HIGH);
+
+  // Iniciar Bluetooth
+  ESP_BT.begin("ashalo");
+
+  Serial.println("Bluetooth iniciado correctamente");
+  Serial.println("Nombre Bluetooth: ashalo");
+  Serial.println("Esperando comandos...");
+}
+
+void loop() {
+
+  if (ESP_BT.available()) {
+
+    char dato = ESP_BT.read();
+
+    Serial.print("Dato recibido: ");
+    Serial.println(dato);
+
+    // ENCENDER RELE
+    if (dato == '1') {
+      digitalWrite(RELE, LOW);
+      Serial.println("RELE ENCENDIDO");
+    }
+
+    // APAGAR RELE
+    else if (dato == '0') {
+      digitalWrite(RELE, HIGH);
+      Serial.println("RELE APAGADO");
+    }
+  }
+
+  delay(20);
+}
