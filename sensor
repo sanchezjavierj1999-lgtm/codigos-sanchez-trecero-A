@@ -1,0 +1,76 @@
+
+#include "BluetoothSerial.h"
+
+BluetoothSerial ESP_BT;
+
+// Pines del sensor
+const int TRIG = 5;
+const int ECHO = 18;
+
+// Pines de los LEDs
+const int LED_ROJO = 2;
+const int LED_VERDE = 4;
+
+float distancia;
+
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(TRIG, OUTPUT);
+  pinMode(ECHO, INPUT);
+
+  pinMode(LED_ROJO, OUTPUT);
+  pinMode(LED_VERDE, OUTPUT);
+
+  digitalWrite(LED_ROJO, LOW);
+  digitalWrite(LED_VERDE, LOW);
+
+  // Iniciar Bluetooth
+  ESP_BT.begin("ashalo");
+
+  Serial.println("Bluetooth iniciado correctamente");
+  Serial.println("Nombre Bluetooth: ashalo");
+}
+
+void loop() {
+
+  // Medir distancia
+  digitalWrite(TRIG, LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG, LOW);
+
+  long duracion = pulseIn(ECHO, HIGH, 30000);
+
+  distancia = duracion * 0.0343 / 2;
+
+  if (duracion == 0) {
+    Serial.println("Sin lectura");
+    delay(200);
+    return;
+  }
+
+  Serial.print("Distancia: ");
+  Serial.print(distancia);
+  Serial.println(" cm");
+
+  // Menos de 20 cm
+  if (distancia < 20) {
+    digitalWrite(LED_ROJO, HIGH);
+    digitalWrite(LED_VERDE, LOW);
+
+    ESP_BT.println("ROJO");
+  }
+
+  // Más de 20 cm
+  else {
+    digitalWrite(LED_ROJO, LOW);
+    digitalWrite(LED_VERDE, HIGH);
+
+    ESP_BT.println("VERDE");
+  }
+
+  delay(200);
+}
