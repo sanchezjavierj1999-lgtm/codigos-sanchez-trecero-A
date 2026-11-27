@@ -1,0 +1,68 @@
+
+#include "BluetoothSerial.h"
+
+#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+#error Bluetooth no esta habilitado. Revisa la configuracion del ESP32.
+#endif
+
+BluetoothSerial ESP_BT;
+
+// Pines de los LED
+const int LED1 = 2;
+const int LED2 = 4;
+
+void setup() {
+  Serial.begin(115200);
+
+  // Configurar los LED como salidas
+  pinMode(LED1, OUTPUT);
+  pinMode(LED2, OUTPUT);
+
+  // Iniciar con los dos LED apagados
+  digitalWrite(LED1, LOW);
+  digitalWrite(LED2, LOW);
+
+  // Iniciar Bluetooth con el nombre ashalo
+  ESP_BT.begin("ashalo");
+
+  Serial.println("Bluetooth iniciado correctamente");
+  Serial.println("Nombre Bluetooth: ashalo");
+  Serial.println("Esperando comandos...");
+}
+
+void loop() {
+
+  if (ESP_BT.available()) {
+
+    char dato = ESP_BT.read();
+
+    Serial.print("Dato recibido: ");
+    Serial.println(dato);
+
+    // ENCENDER LED 1
+    if (dato == '1') {
+      digitalWrite(LED1, HIGH);
+      Serial.println("LED 1 ENCENDIDO");
+    }
+
+    // APAGAR LED 1
+    else if (dato == '0') {
+      digitalWrite(LED1, LOW);
+      Serial.println("LED 1 APAGADO");
+    }
+
+    // ENCENDER LED 2
+    else if (dato == '2') {
+      digitalWrite(LED2, HIGH);
+      Serial.println("LED 2 ENCENDIDO");
+    }
+
+    // APAGAR LED 2
+    else if (dato == '3') {
+      digitalWrite(LED2, LOW);
+      Serial.println("LED 2 APAGADO");
+    }
+  }
+
+  delay(20);
+}
