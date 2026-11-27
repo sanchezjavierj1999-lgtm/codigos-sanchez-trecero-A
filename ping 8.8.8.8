@@ -1,0 +1,40 @@
+
+#include <WiFi.h>
+#include <ESP32Ping.h>
+
+const char* ssid = "ashalo ac tivio";
+const char* password = "123456789";
+
+IPAddress ip(8, 8, 8, 8);
+
+void setup() {
+  Serial.begin(115200);
+
+  Serial.println("Conectando al WiFi...");
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("\nWiFi conectado");
+
+  Serial.print("IP del ESP32: ");
+  Serial.println(WiFi.localIP());
+
+  Serial.print("MAC: ");
+  Serial.println(WiFi.macAddress());
+
+  Serial.println("Comprobando conexion con 8.8.8.8...");
+
+  if (Ping.ping(ip, 4)) {
+    Serial.println("CONEXION EXITOSA A 8.8.8.8");
+    Serial.println("INTERNET FUNCIONANDO");
+  } else {
+    Serial.println("ERROR DE CONEXION");
+  }
+}
+
+void loop() {
+}
