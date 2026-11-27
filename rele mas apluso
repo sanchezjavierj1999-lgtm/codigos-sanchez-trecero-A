@@ -1,0 +1,74 @@
+
+#include "BluetoothSerial.h"
+
+#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+#error Bluetooth no esta habilitado. Revisa la configuracion del ESP32.
+#endif
+
+BluetoothSerial ESP_BT;
+
+// Pines
+const int RELE = 5;
+const int SENSOR_APLAUSO = 18;
+
+bool estadoRele = false;
+int estadoAnterior = HIGH;
+
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(RELE, OUTPUT);
+  pinMode(SENSOR_APLAUSO, INPUT);
+
+  // Rele apagado
+  digitalWrite(RELE, HIGH);
+
+  // Bluetooth
+  ESP_BT.begin("ashalo");
+
+  Serial.println("Bluetooth iniciado correctamente");
+  Serial.println("Nombre Bluetooth: ashalo");
+  Serial.println("Sensor de aplausos listo");
+}
+
+void loop() {
+
+  // Control por Bluetooth
+  if (ESP_BT.available()) {
+    char dato = ESP_BT.read();
+
+    if (dato == '1') {
+      estadoRele = true;
+      digitalWrite(RELE, LOW);
+      Serial.println("RELE ENCENDIDO");
+    }
+
+    else if (dato == '0') {
+      estadoRele = false;
+      digitalWrite(RELE, HIGH);
+      Serial.println("RELE APAGADO");
+    }
+  }
+
+  // Detectar aplauso
+  int lectura = digitalRead(SENSOR_APLAUSO);
+
+  if (lectura == LOW && estadoAnterior == HIGH) {
+
+    estadoRele = !estadoRele;
+
+    if (estadoRele) {
+      digitalWrite(RELE, LOW);
+      Serial.println("APLAUSO: RELE ENCENDIDO");
+    } else {
+      digitalWrite(RELE, HIGH);
+      Serial.println("APLAUSO: RELE APAGADO");
+    }
+
+    delay(300);
+  }
+
+  estadoAnterior = lectura;
+
+  delay(20);
+}
