@@ -1,0 +1,99 @@
+
+#include "BluetoothSerial.h"
+
+#if !defined(CONFIG_BT_ENABLED) || !defined(CONFIG_BLUEDROID_ENABLED)
+#error Bluetooth no esta habilitado. Revisa la configuracion del ESP32.
+#endif
+
+BluetoothSerial ESP_BT;
+
+// Pines del sensor de distancia
+const int TRIG = 23;
+const int ECHO = 22;
+
+// Pines de los LEDs
+const int LED_ROJO = 19;
+const int LED_VERDE = 21;
+
+// Pin del rele
+const int RELE = 5;
+
+float distancia;
+bool estadoRele = false;
+
+void setup() {
+  Serial.begin(115200);
+
+  pinMode(TRIG, OUTPUT);
+  pinMode(ECHO, INPUT);
+
+  pinMode(LED_ROJO, OUTPUT);
+  pinMode(LED_VERDE, OUTPUT);
+  pinMode(RELE, OUTPUT);
+
+  digitalWrite(LED_ROJO, LOW);
+  digitalWrite(LED_VERDE, LOW);
+  digitalWrite(RELE, HIGH);
+
+  // Iniciar Bluetooth
+  ESP_BT.begin("ashalo");
+
+  Serial.println("Sistema iniciado correctamente");
+  Serial.println("Bluetooth: ashalo");
+  Serial.println("Sensor de distancia y rele listos");
+}
+
+void loop() {
+
+  // CONTROL DEL RELE POR BLUETOOTH
+  if (ESP_BT.available()) {
+    char dato = ESP_BT.read();
+
+    if (dato == '1') {
+      estadoRele = true;
+      digitalWrite(RELE, LOW);
+      Serial.println("RELE ENCENDIDO");
+    }
+
+    else if (dato == '0') {
+      estadoRele = false;
+      digitalWrite(RELE, HIGH);
+      Serial.println("RELE APAGADO");
+    }
+  }
+
+  // MEDIR DISTANCIA
+  digitalWrite(TRIG, LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(TRIG, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG, LOW);
+
+  long duracion = pulseIn(ECHO, HIGH, 30000);
+
+  if (duracion == 0) {
+    Serial.println("Sin lectura del sensor");
+    delay(200);
+    return;
+  }
+
+  distancia = duracion * 0.0343 / 2;
+
+  Serial.print("Distancia: ");
+  Serial.print(distancia);
+  Serial.println(" cm");
+
+  // CONTROL DE LOS LEDS
+  if (distancia < 20) {
+    digitalWrite(LED_ROJO, HIGH);
+    digitalWrite(LED_VERDE, LOW);
+  }
+
+  else {
+    digitalWrite(LED_ROJO, LOW);
+    digitalWrite(LED_VERDE, HIGH);
+  }
+
+  delay(200);
+}
